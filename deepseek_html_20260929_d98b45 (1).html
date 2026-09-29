@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>منظومة إدارة المخاطر - ISO 31000</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #2c3e50;
+    line-height: 1.6;
+  }
+  header {
+    background: linear-gradient(135deg, #1e3a5f, #2c5282);
+    color: white;
+    padding: 20px 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  header h1 { font-size: 22px; }
+  header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+  .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 18px;
+    margin-bottom: 15px;
+    color: #1e3a5f;
+    border-right: 4px solid #2c5282;
+    padding-right: 10px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+  label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+  input, select, textarea {
+    width: 100%;
+    padding: 9px;
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 14px;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  button {
+    background: #2c5282;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    transition: 0.2s;
+  }
+  button:hover { background: #1e3a5f; }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  button.secondary { background: #718096; }
+  button.secondary:hover { background: #4a5568; }
+  button.ai { background: #805ad5; }
+  button.ai:hover { background: #6b46c1; }
+  button.danger { background: #c53030; }
+  button.danger:hover { background: #9b2c2c; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  th, td {
+    padding: 9px;
+    text-align: right;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  th { background: #edf2f7; font-weight: 700; }
+  tr:hover { background: #f7fafc; }
+  .badge {
+    padding: 3px 9px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    display: inline-block;
+  }
+  .badge.low { background: #38a169; }
+  .badge.medium { background: #d69e2e; }
+  .badge.high { background: #dd6b20; }
+  .badge.critical { background: #c53030; }
+  .actions button { padding: 5px 10px; font-size: 12px; margin-left: 4px; }
+  .status-bar {
+    background: #edf2f7;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .hidden { display: none !important; }
+  .modal-bg {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 100;
+  }
+  .modal {
+    background: white; border-radius: 10px;
+    padding: 25px; max-width: 500px; width: 90%;
+    max-height: 90vh; overflow-y: auto;
+  }
+  .modal h3 { margin-bottom: 15px; color: #1e3a5f; }
+  .api-note {
+    background: #fffaf0; border: 1px solid #f6ad55;
+    padding: 10px; border-radius: 6px; font-size: 12px;
+    margin-bottom: 12px; color: #7b341e;
+  }
+  .info-note {
+    background: #ebf8ff; border: 1px solid #63b3ed;
+    padding: 10px; border-radius: 6px; font-size: 12px;
+    margin-bottom: 12px; color: #2c5282;
+  }
+  .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    vertical-align: middle;
+    margin-left: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #toast {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: #2d3748; color: white;
+    padding: 12px 24px; border-radius: 8px;
+    font-size: 14px; z-index: 999;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: opacity 0.3s;
+  }
+  #toast.hidden { display: none !important; }
+  #toast.success { background: #2f855a; }
+  #toast.error { background: #c53030; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ منظومة تأسيس إدارة المخاطر — ISO 31000</h1>
+  <p>نموذج أولي تفاعلي | يعمل بالذكاء الاصطناعي</p>
+</header>
+
+<div class="container">
+
+  <!-- إعدادات API -->
+  <div class="card">
+    <h2>⚙️ إعداد الاتصال بالذكاء الاصطناعي</h2>
+    <div class="info-note">
+      <strong>💡 نصيحة:</strong> إذا كنت لا تستطيع الوصول إلى DeepSeek، اختر <strong>OpenRouter</strong> أو <strong>Groq</strong> — فهما مجانيان ويعملان في معظم الدول.
+    </div>
+    <div class="form-grid">
+      <div>
+        <label>المنصة</label>
+        <select id="apiProvider" onchange="onProviderChange()">
+          <option value="deepseek">DeepSeek</option>
+          <option value="openrouter">OpenRouter (مجاني)</option>
+          <option value="groq">Groq (مجاني)</option>
+        </select>
+      </div>
+      <div>
+        <label>مفتاح API</label>
+        <input type="password" id="apiKey" placeholder="الصق المفتاح هنا">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button onclick="saveApiKey()">💾 حفظ المفتاح</button>
+      <button class="secondary" onclick="testConnection()">🔌 اختبار الاتصال</button>
+      <span id="apiStatus" style="align-self:center; font-size:13px;"></span>
+    </div>
+  </div>
+
+  <!-- بيانات المؤسسة -->
+  <div class="card">
+    <h2>🏢 بيانات المؤسسة</h2>
+    <div class="form-grid">
+      <div>
+        <label>اسم المؤسسة</label>
+        <input type="text" id="orgName" placeholder="مثال: شركة النور للصناعات">
+      </div>
+      <div>
+        <label>القطاع</label>
+        <select id="orgSector">
+          <option value="">— اختر —</option>
+          <option>صناعي</option>
+          <option>مالي / مصرفي</option>
+          <option>تجاري / بيع تجزئة</option>
+          <option>خدمات لوجستية</option>
+          <option>تقني / برمجيات</option>
+          <option>صحي</option>
+          <option>تعليمي</option>
+          <option>حكومي</option>
+          <option>زراعي</option>
+          <option>عقاري</option>
+          <option>أخرى</option>
+        </select>
+      </div>
+      <div>
+        <label>الحجم</label>
+        <select id="orgSize">
+          <option value="">— اختر —</option>
+          <option>صغيرة (أقل من 50 موظف)</option>
+          <option>متوسطة (50 - 250 موظف)</option>
+          <option>كبيرة (أكثر من 250 موظف)</option>
+        </select>
+      </div>
+      <div>
+        <label>الموقع الجغرافي</label>
+        <input type="text" id="orgLocation" placeholder="مثال: السودان - الخرطوم">
+      </div>
+      <div style="grid-column: 1 / -1;">
+        <label>الأهداف الاستراتيجية</label>
+        <textarea id="orgGoals" placeholder="مثال: التوسع في أسواق جديدة، زيادة الإيرادات 20%، تحسين جودة الخدمة..."></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button onclick="saveOrg()">💾 حفظ بيانات المؤسسة</button>
+      <button class="ai" onclick="suggestRisksAI(this)">🤖 اقتراح المخاطر بالذكاء الاصطناعي</button>
+    </div>
+  </div>
+
+  <!-- سجل المخاطر -->
+  <div class="card">
+    <h2>📋 سجل المخاطر (Risk Register)</h2>
+    <div class="status-bar">
+      <span>إجمالي المخاطر: <strong id="riskCount">0</strong></span>
+      <div class="btn-row" style="margin:0;">
+        <button class="secondary" onclick="addRiskManual()">➕ إضافة خطر يدويًا</button>
+      </div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="riskTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>الفئة</th>
+            <th>الوصف</th>
+            <th>احتمالية</th>
+            <th>تأثير</th>
+            <th>الدرجة</th>
+            <th>التصنيف</th>
+            <th>إجراء المعالجة</th>
+            <th>إجراءات</th>
+          </tr>
+        </thead>
+        <tbody id="riskBody">
+          <tr><td colspan="9" style="text-align:center; color:#a0aec0; padding:20px;">لا توجد مخاطر بعد — أضف خطرًا يدويًا أو استخدم الذكاء الاصطناعي</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="btn-row">
+      <button onclick="exportCSV()">📊 تصدير CSV (Excel)</button>
+      <button class="secondary" onclick="exportJSON()">💾 حفظ نسخة احتياطية</button>
+      <button class="secondary" onclick="document.getElementById('importFile').click()">📂 استيراد نسخة</button>
+      <input type="file" id="importFile" class="hidden" accept=".json" onchange="importJSON(event)">
+      <button class="danger" onclick="clearAll()">🗑️ حذف الكل</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- نافذة إضافة/تعديل خطر -->
+<div id="modalBg" class="modal-bg hidden">
+  <div class="modal">
+    <h3 id="modalTitle">إضافة خطر</h3>
+    <div class="form-grid" style="grid-template-columns:1fr;">
+      <div>
+        <label>الفئة</label>
+        <select id="mCategory">
+          <option>استراتيجية</option>
+          <option>تشغيلية</option>
+          <option>مالية</option>
+          <option>تقنية</option>
+          <option>امتثال وقانونية</option>
+          <option>سمعة</option>
+          <option>بيئية وصحية</option>
+          <option>موارد بشرية</option>
+          <option>سياسية</option>
+          <option>أمنية</option>
+        </select>
+      </div>
+      <div>
+        <label>وصف الخطر</label>
+        <textarea id="mDesc" placeholder="وصف تفصيلي للخطر..."></textarea>
+      </div>
+      <div>
+        <label>الاحتمالية (1-5)</label>
+        <input type="number" id="mLikelihood" min="1" max="5" value="3">
+      </div>
+      <div>
+        <label>التأثير (1-5)</label>
+        <input type="number" id="mImpact" min="1" max="5" value="3">
+      </div>
+      <div>
+        <label>إجراء المعالجة</label>
+        <textarea id="mTreatment" placeholder="الإجراء المقترح للتعامل مع الخطر..."></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button onclick="saveRiskModal()">💾 حفظ</button>
+      <button class="secondary" onclick="closeModal()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast للإشعارات -->
+<div id="toast" class="hidden"></div>
+
+<script>
+// ============ إعدادات المنصات ============
+const PROVIDERS = {
+  deepseek: {
+    url: 'https://api.deepseek.com/chat/completions',
+    model: 'deepseek-chat',
+    keyPrefix: 'sk-'
+  },
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'deepseek/deepseek-chat-v3:free',
+    keyPrefix: 'sk-or-'
+  },
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'llama-3.3-70b-versatile',
+    keyPrefix: 'gsk_'
+  }
+};
+
+// ============ الحالة ============
+let risks = JSON.parse(localStorage.getItem('risks') || '[]');
+let editingIndex = -1;
+
+// ============ Toast ============
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = type;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+// ============ إعدادات API ============
+function onProviderChange() {
+  const p = document.getElementById('apiProvider').value;
+  const info = PROVIDERS[p];
+  document.getElementById('apiKey').placeholder = `المفتاح يبدأ بـ ${info.keyPrefix}`;
+  document.getElementById('apiStatus').innerHTML = '';
+}
+
+function saveApiKey() {
+  const provider = document.getElementById('apiProvider').value;
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { toast('أدخل المفتاح أولاً', 'error'); return; }
+  if (!key.startsWith(PROVIDERS[provider].keyPrefix)) {
+    toast(`تحذير: المفتاح لا يبدأ بـ ${PROVIDERS[provider].keyPrefix}`, 'error');
+    return;
+  }
+  localStorage.setItem('api_provider', provider);
+  localStorage.setItem('api_key', key);
+  document.getElementById('apiStatus').innerHTML = '✅ تم الحفظ';
+  toast('تم حفظ المفتاح بنجاح', 'success');
+}
+
+async function testConnection() {
+  const provider = localStorage.getItem('api_provider');
+  const key = localStorage.getItem('api_key');
+  if (!key) { toast('احفظ المفتاح أولاً', 'error'); return; }
+
+  document.getElementById('apiStatus').innerHTML = '⏳ جاري الاختبار...';
+  try {
+    const info = PROVIDERS[provider];
+    const res = await fetch(info.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: info.model,
+        messages: [{ role: 'user', content: 'قل: مرحبا' }],
+        max_tokens: 10
+      })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    document.getElementById('apiStatus').innerHTML = '✅ الاتصال يعمل';
+    toast('✅ الاتصال بـ ' + provider + ' يعمل بنجاح', 'success');
+  } catch (err) {
+    document.getElementById('apiStatus').innerHTML = '❌ فشل';
+    toast('❌ فشل الاتصال: ' + err.message, 'error');
+  }
+}
+
+// ============ التهيئة ============
+window.addEventListener('load', () => {
+  const provider = localStorage.getItem('api_provider') || 'deepseek';
+  document.getElementById('apiProvider').value = provider;
+  const saved = localStorage.getItem('api_key');
+  if (saved) {
+    document.getElementById('apiKey').value = saved;
+    document.getElementById('apiStatus').innerHTML = '✅ مفتاح محفوظ';
+  }
+  onProviderChange();
+
+  const org = JSON.parse(localStorage.getItem('org') || '{}');
+  ['name','sector','size','location','goals'].forEach(k => {
+    const el = document.getElementById('org' + k.charAt(0).toUpperCase() + k.slice(1));
+    if (el && org[k]) el.value = org[k];
+  });
+
+  renderRisks();
+});
+
+// ============ بيانات المؤسسة ============
+function saveOrg() {
+  const org = {
+    name: document.getElementById('orgName').value.trim(),
+    sector: document.getElementById('orgSector').value,
+    size: document.getElementById('orgSize').value,
+    location: document.getElementById('orgLocation').value.trim(),
+    goals: document.getElementById('orgGoals').value.trim()
+  };
+  if (!org.name) { toast('أدخل اسم المؤسسة على الأقل', 'error'); return; }
+  localStorage.setItem('org', JSON.stringify(org));
+  toast('✅ تم حفظ بيانات المؤسسة', 'success');
+}
+
+// ============ التصنيف ============
+function classify(score) {
+  if (score <= 4) return { label: 'منخفض', cls: 'low' };
+  if (score <= 9) return { label: 'متوسط', cls: 'medium' };
+  if (score <= 16) return { label: 'مرتفع', cls: 'high' };
+  return { label: 'حرج', cls: 'critical' };
+}
+
+// ============ عرض الجدول ============
+function renderRisks() {
+  const body = document.getElementById('riskBody');
+  document.getElementById('riskCount').textContent = risks.length;
+  if (risks.length === 0) {
+    body.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#a0aec0; padding:20px;">لا توجد مخاطر بعد</td></tr>';
+    return;
+  }
+  body.innerHTML = risks.map((r, i) => {
+    const score = r.likelihood * r.impact;
+    const c = classify(score);
+    return `<tr>
+      <td>${i + 1}</td>
+      <td>${escapeHtml(r.category)}</td>
+      <td>${escapeHtml(r.description)}</td>
+      <td style="text-align:center;">${r.likelihood}</td>
+      <td style="text-align:center;">${r.impact}</td>
+      <td style="text-align:center; font-weight:700;">${score}</td>
+      <td><span class="badge ${c.cls}">${c.label}</span></td>
+      <td>${escapeHtml(r.treatment || '—')}</td>
+      <td class="actions">
+        <button class="secondary" onclick="editRisk(${i})">تعديل</button>
+        <button class="danger" onclick="deleteRisk(${i})">حذف</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
+}
+
+function persist() { localStorage.setItem('risks', JSON.stringify(risks)); }
+
+// ============ النافذة المنبثقة ============
+function openModal(title) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBg').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('modalBg').classList.add('hidden');
+  editingIndex = -1;
+}
+
+function addRiskManual() {
+  editingIndex = -1;
+  document.getElementById('mCategory').value = 'تشغيلية';
+  document.getElementById('mDesc').value = '';
+  document.getElementById('mLikelihood').value = 3;
+  document.getElementById('mImpact').value = 3;
+  document.getElementById('mTreatment').value = '';
+  openModal('إضافة خطر جديد');
+}
+
+function editRisk(i) {
+  editingIndex = i;
+  const r = risks[i];
+  document.getElementById('mCategory').value = r.category;
+  document.getElementById('mDesc').value = r.description;
+  document.getElementById('mLikelihood').value = r.likelihood;
+  document.getElementById('mImpact').value = r.impact;
+  document.getElementById('mTreatment').value = r.treatment || '';
+  openModal('تعديل الخطر');
+}
+
+function saveRiskModal() {
+  const risk = {
+    category: document.getElementById('mCategory').value,
+    description: document.getElementById('mDesc').value.trim(),
+    likelihood: Math.min(5, Math.max(1, parseInt(document.getElementById('mLikelihood').value) || 3)),
+    impact: Math.min(5, Math.max(1, parseInt(document.getElementById('mImpact').value) || 3)),
+    treatment: document.getElementById('mTreatment').value.trim()
+  };
+  if (!risk.description) { toast('أدخل وصف الخطر', 'error'); return; }
+  if (editingIndex >= 0) risks[editingIndex] = risk;
+  else risks.push(risk);
+  persist(); renderRisks(); closeModal();
+  toast(editingIndex >= 0 ? 'تم التعديل' : 'تمت الإضافة', 'success');
+}
+
+function deleteRisk(i) {
+  if (!confirm('هل أنت متأكد من الحذف؟')) return;
+  risks.splice(i, 1); persist(); renderRisks();
+  toast('تم الحذف', 'success');
+}
+
+function clearAll() {
+  if (!confirm('سيتم حذف جميع المخاطر. متابعة؟')) return;
+  risks = []; persist(); renderRisks();
+  toast('تم حذف جميع المخاطر', 'success');
+}
+
+// ============ التصدير والاستيراد ============
+function exportCSV() {
+  if (risks.length === 0) { toast('لا توجد بيانات للتصدير', 'error'); return; }
+  const headers = ['#','الفئة','الوصف','الاحتمالية','التأثير','الدرجة','التصنيف','إجراء المعالجة'];
+  const rows = risks.map((r, i) => {
+    const score = r.likelihood * r.impact;
+    return [i + 1, r.category, `"${(r.description||'').replace(/"/g,'""')}"`,
+            r.likelihood, r.impact, score, classify(score).label,
+            `"${(r.treatment||'').replace(/"/g,'""')}"`];
+  });
+  const csv = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `risk_register_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  toast('تم تصدير الملف', 'success');
+}
+
+function exportJSON() {
+  const data = {
+    org: JSON.parse(localStorage.getItem('org') || '{}'),
+    risks: risks,
+    exportedAt: new Date().toISOString()
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `risk_backup_${new Date().toISOString().slice(0,10)}.json`;
+  link.click();
+  toast('تم حفظ النسخة الاحتياطية', 'success');
+}
+
+function importJSON(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.risks && Array.isArray(data.risks)) {
+        risks = data.risks;
+        persist(); renderRisks();
+        if (data.org) localStorage.setItem('org', JSON.stringify(data.org));
+        toast('تم استيراد البيانات بنجاح', 'success');
+      } else {
+        toast('الملف غير صالح', 'error');
+      }
+    } catch (err) {
+      toast('خطأ في قراءة الملف', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ============ الذكاء الاصطناعي ============
+async function suggestRisksAI(btn) {
+  const provider = localStorage.getItem('api_provider') || 'deepseek';
+  const key = localStorage.getItem('api_key');
+  if (!key) { toast('⚠️ احفظ مفتاح API أولاً', 'error'); return; }
+
+  const org = {
+    name: document.getElementById('orgName').value.trim() || 'مؤسسة',
+    sector: document.getElementById('orgSector').value || 'عام',
+    size: document.getElementById('orgSize').value || 'غير محدد',
+    location: document.getElementById('orgLocation').value.trim() || 'غير محدد',
+    goals: document.getElementById('orgGoals').value.trim() || 'غير محددة'
+  };
+
+  const prompt = `أنت خبير في إدارة المخاطر وفق معيار ISO 31000.
+بيانات المؤسسة:
+- الاسم: ${org.name}
+- القطاع: ${org.sector}
+- الحجم: ${org.size}
+- الموقع: ${org.location}
+- الأهداف الاستراتيجية: ${org.goals}
+
+المطلوب: اقترح 8 مخاطر محتملة لهذه المؤسسة، موزعة على فئات متنوعة (استراتيجية، تشغيلية، مالية، تقنية، امتثال، سمعة).
+
+أعد الإجابة بصيغة JSON فقط، كمصفوفة من الكائنات بالحقول التالية:
+[{"category":"الفئة","description":"وصف الخطر","likelihood":رقم من 1 إلى 5,"impact":رقم من 1 إلى 5,"treatment":"إجراء المعالجة المقترح"}]
+
+لا تكتب أي نص أو شرح خارج JSON.`;
+
+  const oldText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ جاري التحليل... <span class="spinner"></span>';
+
+  try {
+    const info = PROVIDERS[provider];
+    const res = await fetch(info.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${key}`
+      },
+      body: JSON.stringify({
+        model: info.model,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.7
+      })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText.slice(0, 200)}`);
+    }
+
+    const data = await res.json();
+    let content = data.choices[0].message.content.trim();
+    content = content.replace(/```json/gi, '').replace(/```/g, '').trim();
+
+    // استخراج أول مصفوفة JSON من النص
+    const match = content.match(/\[[\s\S]*\]/);
+    if (!match) throw new Error('لم يتم استخراج JSON من الرد');
+    const aiRisks = JSON.parse(match[0]);
+
+    if (!Array.isArray(aiRisks) || aiRisks.length === 0) {
+      throw new Error('الرد فارغ');
+    }
+
+    aiRisks.forEach(r => {
+      risks.push({
+        category: r.category || 'غير مصنف',
+        description: r.description || '',
+        likelihood: Math.min(5, Math.max(1, parseInt(r.likelihood) || 3)),
+        impact: Math.min(5, Math.max(1, parseInt(r.impact) || 3)),
+        treatment: r.treatment || ''
+      });
+    });
+    persist(); renderRisks();
+    toast(`✅ تمت إضافة ${aiRisks.length} خطرًا بنجاح`, 'success');
+  } catch (err) {
+    console.error(err);
+    let msg = err.message;
+    if (msg.includes('401')) msg = 'المفتاح خاطئ أو منتهي';
+    else if (msg.includes('402')) msg = 'الرصيد صفر — اشحن الحساب';
+    else if (msg.includes('429')) msg = 'تجاوزت الحد المسموح، انتظر قليلًا';
+    toast('❌ ' + msg, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = oldText;
+  }
+}
+</script>
+</body>
+</html>
